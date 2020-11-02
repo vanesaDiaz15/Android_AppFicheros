@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.Button
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import com.example.loginregistrojson.MainActivity
@@ -27,6 +28,8 @@ class Registro : AppCompatActivity() {
     lateinit var name: String
     lateinit var ape: String
 
+    lateinit var btnActualizar: Button
+
     var registro = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,9 +41,13 @@ class Registro : AppCompatActivity() {
         et_nom = findViewById(R.id.editTextTextNombre)
         et_ape = findViewById(R.id.editTextPwd)
 
+        btnActualizar = findViewById(R.id.buttonAceptar)
+
         var registro = intent.getBooleanExtra("registro", true)
 
         if (!registro) {
+
+            btnActualizar.text = "ACTUALIZAR"
             var fich = "user.json"
 
             var bufferedReader = BufferedReader(InputStreamReader(openFileInput(fich)))
@@ -53,34 +60,12 @@ class Registro : AppCompatActivity() {
             et_ape.setText(jsonjObject.getString("apellido"))
 
             bufferedReader.close()
-
-
-            var fileOutput = openFileOutput(fich, Context.MODE_PRIVATE)
-
-            var outputStreamWriter = OutputStreamWriter(fileOutput)
-
-            usr = et_usr.text.toString()
-            pwd = et_pwd.text.toString()
-            name = et_nom.text.toString()
-            ape = et_ape.text.toString()
-
-            if (usr == jsonjObject.getString("usr")) {
-                jsonjObject.put("pwd", pwd)
-                jsonjObject.put("name", name)
-                jsonjObject.put("apellido", ape)
-
-            }
-            outputStreamWriter.write(jsonjObject.toString())
-            outputStreamWriter.close()
-            fileOutput.close()
-
-
         }
     }
 
     fun aceptar(view: View) {
+        var fich = "user.json"
         if (registro) {
-            var fich = "user.json"
 
             var usuario = User()
 
@@ -112,6 +97,33 @@ class Registro : AppCompatActivity() {
             resultIntent.putExtra("usuario", usuario.getBundle())
 
             setResult(Activity.RESULT_OK, resultIntent)
+        }else{
+            var bufferedReader = BufferedReader(InputStreamReader(openFileInput(fich)))
+            var textoLeido = bufferedReader.readLine()
+            var jsonjObject = JSONObject(textoLeido)
+
+            bufferedReader.close()
+
+            var fileOutput = openFileOutput(fich, Context.MODE_PRIVATE)
+
+            var outputStreamWriter = OutputStreamWriter(fileOutput)
+
+            usr = et_usr.text.toString()
+            pwd = et_pwd.text.toString()
+            name = et_nom.text.toString()
+            ape = et_ape.text.toString()
+
+            if (usr == jsonjObject.getString("usr")) {
+                jsonjObject.put("pwd", pwd)
+                jsonjObject.put("name", name)
+                jsonjObject.put("apellido", ape)
+
+            }
+            outputStreamWriter.write(jsonjObject.toString())
+            outputStreamWriter.close()
+            fileOutput.close()
+
+
         }
         finish()
     }
