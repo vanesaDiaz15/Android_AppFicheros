@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import com.example.loginregistrojson.MainActivity
@@ -23,7 +22,10 @@ class Registro : AppCompatActivity() {
     lateinit var et_nom: EditText
     lateinit var et_ape: EditText
 
-    lateinit var btnCancelar: Button
+    lateinit var usr: String
+    lateinit var pwd: String
+    lateinit var name: String
+    lateinit var ape: String
 
     var registro = true
 
@@ -36,62 +38,72 @@ class Registro : AppCompatActivity() {
         et_nom = findViewById(R.id.editTextTextNombre)
         et_ape = findViewById(R.id.editTextPwd)
 
-        btnCancelar = findViewById(R.id.buttonCancel)
-
         var registro = intent.getBooleanExtra("registro", true)
 
-
         if (!registro) {
-            var fich = File("user.json")
-            var bufferedReader = BufferedReader(InputStreamReader(openFileInput(fich.toString())))
+            var fich = "user.json"
+
+            var bufferedReader = BufferedReader(InputStreamReader(openFileInput(fich)))
             var textoLeido = bufferedReader.readLine()
-            val jsonjObject = JSONObject(textoLeido)
+            var jsonjObject = JSONObject(textoLeido)
+
             et_usr.setText(jsonjObject.getString("usr"))
             et_pwd.setText(jsonjObject.getString("pwd"))
             et_nom.setText(jsonjObject.getString("name"))
             et_ape.setText(jsonjObject.getString("apellido"))
+
             bufferedReader.close()
+
+
+            var fileOutput = openFileOutput(fich, Context.MODE_PRIVATE)
+
+            var outputStreamWriter = OutputStreamWriter(fileOutput)
+
+            usr = et_usr.text.toString()
+            pwd = et_pwd.text.toString()
+            name = et_nom.text.toString()
+            ape = et_ape.text.toString()
+
+            if (usr == jsonjObject.getString("usr")) {
+                jsonjObject.put("pwd", pwd)
+                jsonjObject.put("name", name)
+                jsonjObject.put("apellido", ape)
+
+            }
+            outputStreamWriter.write(jsonjObject.toString())
+            outputStreamWriter.close()
+            fileOutput.close()
+
 
         }
     }
 
     fun aceptar(view: View) {
         if (registro) {
+            var fich = "user.json"
+
             var usuario = User()
 
-            var usr = et_usr.text.toString()
-            var pwd = et_pwd.text.toString()
-            var name = et_nom.text.toString()
-            var ape = et_ape.text.toString()
+            usr = et_usr.text.toString()
+            pwd = et_pwd.text.toString()
+            name = et_nom.text.toString()
+            ape = et_ape.text.toString()
 
             usuario.usr = usr
             usuario.pwd = pwd
             usuario.name = name
             usuario.apellido = ape
 
-            var fich = "user.json"
             var fileOutput = openFileOutput(fich, Context.MODE_PRIVATE)
             var outputStreamWriter = OutputStreamWriter(fileOutput)
 
-            var bufferedReader = BufferedReader(InputStreamReader(openFileInput(fich)))
-            var textoLeido = bufferedReader.readLine()
-            val jsonjObject = JSONObject(textoLeido)
 
-            if(usr.equals(jsonjObject.getString("usr"))){
-                jsonjObject.put("pwd", pwd)
-                jsonjObject.put("name", name)
-                jsonjObject.put("apellido", ape)
-                outputStreamWriter.write(jsonjObject.toString())
-            }else{
-                val obj = JSONObject()
-                obj.put("usr", usr)
-                obj.put("pwd", pwd)
-                obj.put("name", name)
-                obj.put("apellido", ape)
-                outputStreamWriter.write(obj.toString())
-            }
-
-            bufferedReader.close()
+            val obj = JSONObject()
+            obj.put("usr", usr)
+            obj.put("pwd", pwd)
+            obj.put("name", name)
+            obj.put("apellido", ape)
+            outputStreamWriter.write(obj.toString())
 
             outputStreamWriter.close()
             fileOutput.close()
