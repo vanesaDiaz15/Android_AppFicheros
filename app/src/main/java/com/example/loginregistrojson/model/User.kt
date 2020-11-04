@@ -24,11 +24,4 @@ class User {
         name = bundle.getString("nombre", "")
         apellido = bundle.getString("apellido", "")
     }
-
-    fun toJsonString() : String{
-        return " { \"usr\":\"ES\",\n" +
-                " { \"pwd\":\"1123\",\n" +
-                " { \"name\":\"sdf\",\n" +
-                " { \"apellido\":\"Diaz\"},\n"
-    }
 }

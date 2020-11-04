@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.loginregistrojson.activities.Registro
 import com.example.loginregistrojson.dialog.LoginDialog
 import com.example.loginregistrojson.model.User
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -39,10 +40,14 @@ class MainActivity : AppCompatActivity() {
         var fich = "user.json"
         var bufferedReader = BufferedReader(InputStreamReader(openFileInput(fich)))
         var textoLeido = bufferedReader.readLine()
-        val jsonjObject = JSONObject(textoLeido)
+        var jsonjObjectPrincipal = JSONObject(textoLeido)
 
-        loginDialog.usr = jsonjObject.getString("usr")
-        loginDialog.password = jsonjObject.getString("pwd")
+        val cast: JSONArray = jsonjObjectPrincipal.getJSONArray("Users")
+        for (i in 0 until cast.length()) {
+            val user = cast.getJSONObject(i)
+            loginDialog.usr.add(user.getString("usr"))
+            loginDialog.password.add(user.getString("pwd"))
+        }
         bufferedReader.close()
 
         loginDialog.mainActivity = this
@@ -75,6 +80,7 @@ class MainActivity : AppCompatActivity() {
 
     fun info(view: View) {
         var intentInfo = Intent(this, Registro::class.java)
+        intentInfo.putExtra("usuario", usuario.getBundle())
         intentInfo.putExtra("registro", false)
 
         startActivity(intentInfo)

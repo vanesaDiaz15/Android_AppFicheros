@@ -1,6 +1,5 @@
 package com.example.loginregistrojson.activities
 
-import android.R.id
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -12,8 +11,11 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.loginregistrojson.MainActivity
 import com.example.loginregistrojson.R
 import com.example.loginregistrojson.model.User
+import org.json.JSONArray
 import org.json.JSONObject
-import java.io.*
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.io.OutputStreamWriter
 
 
 class Registro : AppCompatActivity() {
@@ -46,7 +48,6 @@ class Registro : AppCompatActivity() {
         var registro = intent.getBooleanExtra("registro", true)
 
         if (!registro) {
-
             btnActualizar.text = "ACTUALIZAR"
             var fich = "user.json"
 
@@ -54,10 +55,14 @@ class Registro : AppCompatActivity() {
             var textoLeido = bufferedReader.readLine()
             var jsonjObject = JSONObject(textoLeido)
 
-            et_usr.setText(jsonjObject.getString("usr"))
-            et_pwd.setText(jsonjObject.getString("pwd"))
-            et_nom.setText(jsonjObject.getString("name"))
-            et_ape.setText(jsonjObject.getString("apellido"))
+            val cast: JSONArray = jsonjObject.getJSONArray("Users")
+            for (i in 0 until cast.length()) {
+                val user = cast.getJSONObject(i)
+                et_usr.setText(user.getString("usr"))
+                et_pwd.setText(user.getString("pwd"))
+                et_nom.setText(user.getString("name"))
+                et_ape.setText(user.getString("apellido"))
+            }
 
             bufferedReader.close()
         }
@@ -65,66 +70,57 @@ class Registro : AppCompatActivity() {
 
     fun aceptar(view: View) {
         var fich = "user.json"
-        if (registro) {
 
-            var usuario = User()
+        var act = false
 
-            usr = et_usr.text.toString()
-            pwd = et_pwd.text.toString()
-            name = et_nom.text.toString()
-            ape = et_ape.text.toString()
+        var usuario = User()
 
-            usuario.usr = usr
-            usuario.pwd = pwd
-            usuario.name = name
-            usuario.apellido = ape
-
-            var fileOutput = openFileOutput(fich, Context.MODE_PRIVATE)
-            var outputStreamWriter = OutputStreamWriter(fileOutput)
+        usr = et_usr.text.toString()
+        pwd = et_pwd.text.toString()
+        name = et_nom.text.toString()
+        ape = et_ape.text.toString()
 
 
-            val obj = JSONObject()
-            obj.put("usr", usr)
-            obj.put("pwd", pwd)
-            obj.put("name", name)
-            obj.put("apellido", ape)
-            outputStreamWriter.write(obj.toString())
+        var bufferedReader = BufferedReader(InputStreamReader(openFileInput(fich)))
+        var textoLeido = bufferedReader.readLine()
+        var jsonjObjectPrincipal = JSONObject(textoLeido)
 
-            outputStreamWriter.close()
-            fileOutput.close()
+        var fileOutput = openFileOutput(fich, Context.MODE_PRIVATE)
 
-            var resultIntent = Intent(this, MainActivity::class.java)
-            resultIntent.putExtra("usuario", usuario.getBundle())
-
-            setResult(Activity.RESULT_OK, resultIntent)
-        }else{
-            var bufferedReader = BufferedReader(InputStreamReader(openFileInput(fich)))
-            var textoLeido = bufferedReader.readLine()
-            var jsonjObject = JSONObject(textoLeido)
-
-            bufferedReader.close()
-
-            var fileOutput = openFileOutput(fich, Context.MODE_PRIVATE)
-
-            var outputStreamWriter = OutputStreamWriter(fileOutput)
-
-            usr = et_usr.text.toString()
-            pwd = et_pwd.text.toString()
-            name = et_nom.text.toString()
-            ape = et_ape.text.toString()
-
-            if (usr == jsonjObject.getString("usr")) {
-                jsonjObject.put("pwd", pwd)
-                jsonjObject.put("name", name)
-                jsonjObject.put("apellido", ape)
-
+        var outputStreamWriter = OutputStreamWriter(fileOutput)
+        val cast: JSONArray = jsonjObjectPrincipal.getJSONArray("Users")
+        for (i in 0 until cast.length()) {
+            val user : JSONObject = cast.getJSONObject(i)
+            if (usr == user.getString("usr")) {
+                act = true
+                user.put("pwd", pwd)
+                user.put("name", name)
+                user.put("apellido", ape)
             }
-            outputStreamWriter.write(jsonjObject.toString())
-            outputStreamWriter.close()
-            fileOutput.close()
-
-
         }
+
+        if (!act){
+            var user = JSONObject()
+            user.put("usr", usr)
+            user.put("pwd", pwd)
+            user.put("name", name)
+            user.put("apellido", ape)
+
+            cast.put(user)
+        }
+        jsonjObjectPrincipal.put("Users", cast)
+        bufferedReader.close()
+
+        outputStreamWriter.write(jsonjObjectPrincipal.toString())
+        outputStreamWriter.close()
+        fileOutput.close()
+
+        var resultIntent = Intent(this, MainActivity::class.java)
+        resultIntent.putExtra("usuario", usuario.getBundle())
+
+        setResult(Activity.RESULT_OK, resultIntent)
+
+
         finish()
     }
 
